@@ -1,0 +1,82 @@
+Задание
+Написать sql-запросы к БД «Библиотека», которые позволяют получить следующую информацию:
+
+1.Определить, сколько книг прочитал каждый читатель в текущем году. Вывести рейтинг читателей по убыванию.
+
+Ответ запрос 1
+SELECT id_vidachi, nomer_bilet_chitatel, uchetnyi_god, COUNT(nomer_bilet_chitatel) AS reiting_chitatelei 
+FROM vozvrat_books
+WHERE uchetnyi_god = '2023'
+GROUP BY id_vidachi, nomer_bilet_chitatel, uchetnyi_god
+HAVING COUNT(nomer_bilet_chitatel) > 0  
+ORDER BY reiting_chitatelei DESC
+
+2.Определить, сколько книг у читателей на руках на текущую дату.
+
+Ответ запрос 2
+SELECT COUNT(id_vidachi) AS vsego_ne_vernuli_book 
+FROM all_operacii_s_books
+WHERE prinyal_sotrudnik = 0
+ORDER BY vsego_ne_vernuli_book
+
+3.Определить читателей, у которых на руках определенная книга.
+
+Ответ запрос 3
+SELECT shifr_book, nomer_bilet_chitatel 
+FROM all_operacii_s_books
+WHERE prinyal_sotrudnik = 0 AND shifr_book = 7
+
+4.Определите, какие книги на руках читателей.
+
+Ответ запрос 4
+SELECT shifr_book, nomer_bilet_chitatel 
+FROM all_operacii_s_books
+WHERE prinyal_sotrudnik = 0
+
+5.Вывести количество должников на текущую дату. 
+
+Ответ запрос 5
+SELECT COUNT(id_vidachi) AS kolithestvo_doljnikov
+FROM all_operacii_s_books
+WHERE prinyal_sotrudnik = 0
+
+6.Книги какого издательства были самыми востребованными у читателей? Отсортируйте издательства по убыванию востребованности книг.
+
+Ответ запрос 6
+SELECT izdatelstvo, COUNT(izdatelstvo) AS vidano_book_izdatelstva 
+FROM uchetnyi_god
+GROUP BY izdatelstvo
+ORDER BY vidano_book_izdatelstva DESC
+
+7.Определить самого издаваемого автора.
+
+Ответ запрос 7
+SELECT avtor, COUNT(avtor) AS samii_izdavaemii_avtor 
+FROM books
+GROUP BY avtor
+ORDER BY samii_izdavaemii_avtor DESC
+
+8.Определить среднее количество прочитанных страниц читателем за день.
+
+Ответ запрос 8
+
+SELECT vozvrat_books.nomer_bilet_chitatel, vozvrat_books.date_vozvrat, vidatha_books.date_vidachi,  
+books.shifr_book, books.obem_stranitc, vozvrat_books.date_vozvrat - vidatha_books.date_vidachi AS kolithestvo_day, 
+books.obem_stranitc / (vozvrat_books.date_vozvrat - vidatha_books.date_vidachi) AS prochitano_stranich_za_day
+FROM vozvrat_books
+LEFT JOIN vidatha_books
+ON vozvrat_books.id_vidachi = vidatha_books.id
+LEFT JOIN books
+ON vozvrat_books.shifr_book = books.shifr_book
+WHERE prinyal_sotrudnik <> 0
+GROUP BY vozvrat_books.nomer_bilet_chitatel, vozvrat_books.date_vozvrat, vidatha_books.date_vidachi,
+books.shifr_book, books.obem_stranitc, kolithestvo_day
+ORDER BY prochitano_stranich_za_day DESC
+
+ Дополнительная информация к заданию:
+
+a Книга считается на руках, если не указана дата возврата книги.
+
+b Должником является читатель, который не возвратил книгу в течение 2-х недель.
+
+c Книга считается прочитанной, если она была взята и сдана.
